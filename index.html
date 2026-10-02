@@ -1,0 +1,1872 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Cousin Fund V4</title>
+
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f4f6fb;color:#172033;transition:.3s}
+body.dark{background:#0d111b;color:#f5f7ff}
+.app{max-width:950px;margin:auto;padding:18px;padding-bottom:100px}
+header{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
+.logo{font-size:26px;font-weight:900}
+.muted{color:#7b8498;font-size:14px}
+.dark .muted{color:#9ba5b9}
+.card{background:white;border-radius:24px;padding:20px;margin-bottom:16px;box-shadow:0 8px 30px #0000000d;animation:appear .3s ease}
+.dark .card{background:#181e2a;box-shadow:none}
+@keyframes appear{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.hero{background:linear-gradient(135deg,#4f46e5,#7c3aed);color:white}
+.hero .muted{color:#ddd6fe}
+.heroAmount{font-size:48px;font-weight:900;margin:10px 0}
+.progressTrack{height:15px;background:#ffffff35;border-radius:20px;overflow:hidden}
+.progressBar{height:100%;width:0;background:white;border-radius:20px;transition:1s}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.box{border:1px solid #e4e7ee;border-radius:18px;padding:17px}
+.dark .box{border-color:#303849}
+.money{font-size:25px;font-weight:900;margin-top:6px}
+.icon{font-size:27px}
+input,select{width:100%;padding:13px;margin:7px 0 12px;border:1px solid #d8dce5;border-radius:13px;background:white;color:#172033;font-size:15px}
+.dark input,.dark select{background:#10151f;color:white;border-color:#394255}
+label{font-weight:700;font-size:14px}
+button{border:0;border-radius:13px;padding:12px 16px;background:#4f46e5;color:white;font-weight:700;cursor:pointer;transition:.2s}
+button:hover{transform:translateY(-2px)}
+.full{width:100%}
+.secondary{background:#e6e9ef;color:#172033}
+.dark .secondary{background:#303849;color:white}
+.danger{background:#dc2626}
+.green{color:#16a34a;font-weight:800}
+.orange{color:#ea580c;font-weight:800}
+.section{display:none}
+.section.active{display:block}
+.nav{position:fixed;z-index:50;bottom:12px;left:50%;transform:translateX(-50%);width:min(920px,95%);padding:8px;border-radius:20px;background:#fffffff2;backdrop-filter:blur(15px);box-shadow:0 8px 35px #00000022;display:flex;justify-content:space-around}
+.dark .nav{background:#181e2bf2}
+.nav button{background:transparent;color:#667085;padding:9px 10px;font-size:12px}
+.dark .nav button{color:#bdc5d5}
+.transaction{padding:15px 0;border-bottom:1px solid #e5e7eb}
+.dark .transaction{border-color:#303849}
+.transactionTop{display:flex;justify-content:space-between;gap:10px}
+.small{font-size:12px}
+.smallBtn{padding:7px 10px;font-size:12px;margin-top:7px}
+.complete{margin-top:15px;padding:16px;border-radius:17px;background:#dcfce7;color:#166534;font-weight:800;animation:pop .4s ease}
+@keyframes pop{from{transform:scale(.85)}to{transform:scale(1)}}
+.toast{position:fixed;z-index:100;left:50%;bottom:90px;transform:translate(-50%,30px);background:#172033;color:white;padding:14px 20px;border-radius:15px;opacity:0;pointer-events:none;transition:.3s}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.modal{position:fixed;inset:0;background:#00000080;z-index:80;display:none;align-items:center;justify-content:center;padding:18px}
+.modal.show{display:flex}
+.modalBox{background:white;color:#172033;width:min(500px,100%);max-height:90vh;overflow:auto;border-radius:25px;padding:22px}
+.dark .modalBox{background:#181e2a;color:white}
+.report{white-space:pre-wrap;background:#f4f5f8;border-radius:15px;padding:15px;font-family:monospace;font-size:12px;max-height:450px;overflow:auto}
+.dark .report{background:#10151f}
+.lockScreen{position:fixed;inset:0;background:#0f1420;z-index:999;color:white;display:flex;justify-content:center;align-items:center;padding:20px}
+.lockBox{width:min(400px,100%);text-align:center}
+.hidden{display:none!important}
+.sync{font-size:12px;margin-top:3px}
+@media(max-width:700px){.grid4{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:480px){
+.grid{grid-template-columns:1fr}
+.heroAmount{font-size:38px}
+.logo{font-size:22px}
+.nav button{font-size:10px;padding:8px 5px}
+}
+</style>
+</head>
+
+<body>
+
+<div id="lockScreen" class="lockScreen hidden">
+<div class="lockBox">
+<div style="font-size:55px">🏦</div>
+<h1>Cousin Fund</h1>
+<p class="muted">Enter your PIN to continue</p>
+<input id="loginPin" type="password" inputmode="numeric" maxlength="6" placeholder="PIN" style="text-align:center">
+<button class="full" onclick="unlock()">🔓 Unlock</button>
+<p id="pinError" style="color:#f87171"></p>
+</div>
+</div>
+
+<div class="app" id="mainApp">
+
+<header>
+<div>
+<div class="logo">🏦 Cousin Fund</div>
+<div class="muted">Shared Bank • V4</div>
+<div id="syncStatus" class="sync">☁️ Connecting...</div>
+</div>
+<button onclick="toggleDark()">🌙</button>
+</header>
+
+<div id="home" class="section active">
+
+<div class="card hero">
+<div class="muted">CURRENT GOAL</div>
+<h2 id="homeGoalName">No Goal</h2>
+<div class="heroAmount">₹<span id="homeTotal">0</span></div>
+<div>₹<span id="homeCurrent">0</span> of ₹<span id="homeGoal">0</span></div>
+<br>
+<div class="progressTrack"><div id="progressBar" class="progressBar"></div></div>
+<div id="goalMessage"></div>
+</div>
+
+<div class="card">
+<h2>👥 Contribution Progress</h2>
+<div class="grid">
+
+<div class="box">
+<b>👤 A Cousin</b>
+<div class="money">₹<span id="aCousinTotal">0</span></div>
+<div class="muted">Required: ₹<span id="aCousinRequired">0</span></div>
+<div id="aCousinStatus"></div>
+</div>
+
+<div class="box">
+<b>👤 Cousin</b>
+<div class="money">₹<span id="cousinTotal">0</span></div>
+<div class="muted">Required: ₹<span id="cousinRequired">0</span></div>
+<div id="cousinStatus"></div>
+</div>
+
+</div>
+</div>
+
+<div class="card">
+<h2>💰 Fund Summary</h2>
+<div class="grid4">
+
+<div class="box"><div class="icon">🎮</div><div class="muted">Roblox</div><div class="money">₹<span id="sumRoblox">0</span></div></div>
+<div class="box"><div class="icon">👤</div><div class="muted">Personal</div><div class="money">₹<span id="sumPersonal">0</span></div></div>
+<div class="box"><div class="icon">🏦</div><div class="muted">Savings</div><div class="money">₹<span id="sumSavings">0</span></div></div>
+<div class="box"><div class="icon">🍫</div><div class="muted">Fun</div><div class="money">₹<span id="sumFun">0</span></div></div>
+
+</div>
+</div>
+
+<div class="card">
+<h2>📊 Quick Statistics</h2>
+<div class="grid">
+
+<div class="box"><div class="muted">Total Contributions</div><div class="money" id="statTransactions">0</div></div>
+<div class="box"><div class="muted">Average Contribution</div><div class="money">₹<span id="statAverage">0</span></div></div>
+<div class="box"><div class="muted">A Cousin Contributions</div><div class="money" id="statACousinCount">0</div></div>
+<div class="box"><div class="muted">Cousin Contributions</div><div class="money" id="statCousinCount">0</div></div>
+
+</div>
+</div>
+</div>
+
+<div id="goals" class="section">
+
+<div class="card">
+<h2>🎯 Goal Manager</h2>
+
+<label>Goal Name</label>
+<input id="goalNameInput" placeholder="Example: Roblox Goal">
+
+<label>Total Goal Amount</label>
+<input id="goalAmountInput" type="number" placeholder="Minimum ₹300">
+
+<button class="full" onclick="saveGoal()">💾 Save Goal</button>
+<br><br>
+<button class="danger" onclick="removeGoal()">🗑️ Remove Goal</button>
+</div>
+
+<div class="card">
+<h2>📜 Goal Rules</h2>
+<p>1. The minimum goal is ₹300.</p>
+<p>2. A Cousin's target is exactly 50% of the goal.</p>
+<p>3. Cousin's target is exactly 50% of the goal.</p>
+<p>4. Neither person can contribute more than their 50% share.</p>
+<p>5. Contributing more does not give more decision power.</p>
+<p>6. Goal changes should be agreed on IRL.</p>
+<p>7. Every contribution is automatically divided into 50/20/20/10.</p>
+<p>8. Purchases are decided together IRL.</p>
+</div>
+</div>
+
+<div id="funds" class="section">
+
+<div class="card">
+<h2>💰 Shared Funds</h2>
+
+<div class="box">
+<h3>🎮 Roblox Fund</h3>
+<div class="money">₹<span id="fundRoblox">0</span></div>
+<p class="muted">50% of every contribution • Shared</p>
+</div>
+
+<br>
+
+<div class="box">
+<h3>🏦 Shared Savings</h3>
+<div class="money">₹<span id="fundSavings">0</span></div>
+<p class="muted">20% of every contribution • Shared</p>
+</div>
+</div>
+
+<div class="card">
+<h2>👤 Personal Funds</h2>
+<div class="grid">
+
+<div class="box">
+<h3>👤 A Cousin Personal</h3>
+<div class="money">₹<span id="fundACousinPersonal">0</span></div>
+<p class="muted">20% of A Cousin's contributions</p>
+</div>
+
+<div class="box">
+<h3>👤 Cousin Personal</h3>
+<div class="money">₹<span id="fundCousinPersonal">0</span></div>
+<p class="muted">20% of Cousin's contributions</p>
+</div>
+
+<div class="box">
+<h3>🍫 A Cousin Fun</h3>
+<div class="money">₹<span id="fundACousinFun">0</span></div>
+<p class="muted">10% of A Cousin's contributions</p>
+</div>
+
+<div class="box">
+<h3>🍫 Cousin Fun</h3>
+<div class="money">₹<span id="fundCousinFun">0</span></div>
+<p class="muted">10% of Cousin's contributions</p>
+</div>
+
+</div>
+</div>
+
+<div class="card">
+<h2>📐 Current Allocation</h2>
+<p>🎮 Roblox Fund: <b>50%</b></p>
+<p>👤 Personal Fund: <b>20%</b></p>
+<p>🏦 Shared Savings: <b>20%</b></p>
+<p>🍫 Fun Fund: <b>10%</b></p>
+</div>
+</div>
+
+<div id="add" class="section">
+
+<div class="card">
+<h2>➕ Record Contribution</h2>
+
+<label>Contributor</label>
+<select id="contributor">
+<option>A Cousin</option>
+<option>Cousin</option>
+</select>
+
+<label>Contribution Amount</label>
+<input id="contributionAmount" type="number" placeholder="₹ Amount">
+
+<label>Contribution Note</label>
+<input id="contributionNote" placeholder="Example: Weekly money">
+
+<button class="full" onclick="addContribution()">💰 Add Contribution</button>
+</div>
+
+<div class="card">
+<h2>🧮 Automatic Split Preview</h2>
+<div id="splitPreview">Enter an amount above to see the split.</div>
+</div>
+</div>
+
+<div id="history" class="section">
+
+<div class="card">
+<h2>🧾 Transaction History</h2>
+
+<label>Search</label>
+<input id="searchTransactions" oninput="renderHistory()" placeholder="Search name or note...">
+
+<label>Filter</label>
+<select id="filterTransactions" onchange="renderHistory()">
+<option value="all">Everyone</option>
+<option value="A Cousin">A Cousin</option>
+<option value="Cousin">Cousin</option>
+</select>
+
+<div id="historyList">No transactions yet.</div>
+</div>
+</div>
+
+<div id="settings" class="section">
+
+<div class="card">
+<h2>⚙️ App Settings</h2>
+
+<button class="secondary full" onclick="setPin()">🔐 Set / Change PIN</button>
+<br><br>
+<button class="secondary full" onclick="removePin()">🔓 Remove PIN</button>
+</div>
+
+<div class="card">
+<h2>📤 Export & Backup</h2>
+
+<p class="muted">Create a human-readable report containing every important detail.</p>
+
+<button class="full" onclick="showExport()">📄 Create Detailed Report</button>
+<br><br>
+<button class="secondary full" onclick="downloadJSON()">💾 Download Technical Backup</button>
+<br><br>
+
+<label>Import Technical Backup</label>
+<input type="file" id="importFile" accept=".json" onchange="importBackup(event)">
+</div>
+
+<div class="card">
+<h2>🗑️ Danger Zone</h2>
+<button class="danger full" onclick="resetEverything()">Delete All App Data</button>
+</div>
+
+<div class="card">
+<h2>ℹ️ About Cousin Fund</h2>
+<p><b>Version:</b> 4.0</p>
+<p><b>Purpose:</b> Shared money tracking for A Cousin and Cousin.</p>
+<p><b>Important:</b> This is a personal tracker, not a real bank.</p>
+<p><b>Purchases:</b> Decided together IRL.</p>
+</div>
+
+</div>
+</div>
+
+<div class="nav">
+<button onclick="showPage('home')">🏠<br>Home</button>
+<button onclick="showPage('goals')">🎯<br>Goals</button>
+<button onclick="showPage('funds')">💰<br>Funds</button>
+<button onclick="showPage('add')">➕<br>Add</button>
+<button onclick="showPage('history')">🧾<br>History</button>
+<button onclick="showPage('settings')">⚙️<br>Settings</button>
+</div>
+
+<div id="editModal" class="modal">
+<div class="modalBox">
+<h2>✏️ Edit Contribution</h2>
+
+<input type="hidden" id="editId">
+
+<label>Contributor</label>
+<select id="editPerson">
+<option>A Cousin</option>
+<option>Cousin</option>
+</select>
+
+<label>Amount</label>
+<input id="editAmount" type="number">
+
+<label>Note</label>
+<input id="editNote">
+
+<button onclick="saveEdit()">Save Changes</button>
+<button class="secondary" onclick="closeModal()">Cancel</button>
+</div>
+</div>
+
+<div id="exportModal" class="modal">
+<div class="modalBox">
+<h2>📄 Detailed Report</h2>
+<div id="report" class="report"></div>
+<br>
+<button onclick="downloadReport()">⬇️ Download Report</button>
+<button class="secondary" onclick="closeExport()">Close</button>
+</div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script>
+/* ==============================
+   FIREBASE CONFIG
+   ============================== */
+
+const firebaseConfig={
+    apiKey:"AIzaSyCN-GBwWkyGIMW74kHtjUs3KHjIo-YBK2Y",
+    authDomain:"cousin-fund-bank-5bef3.firebaseapp.com",
+    projectId:"cousin-fund-bank-5bef3",
+    storageBucket:"cousin-fund-bank-5bef3.firebasestorage.app",
+    messagingSenderId:"1061604537609",
+    appId:"1:1061604537609:web:e0da507407fa4e06a04fd8"
+};
+
+let db=null;
+let fundRef=null;
+let cloudReady=false;
+let cloudListenerStarted=false;
+let savingToCloud=false;
+
+
+/* ==============================
+   LOCAL DATA
+   ============================== */
+
+let data=JSON.parse(
+    localStorage.getItem("cousinFundV4")
+)||{
+    goalName:"No Goal",
+    goal:0,
+    transactions:[],
+    pin:""
+};
+
+
+/* ==============================
+   DATA CLEANING
+   ============================== */
+
+function normalizeData(obj){
+
+    let clean={
+        goalName:obj.goalName||"No Goal",
+        goal:Number(obj.goal||0),
+        transactions:Array.isArray(obj.transactions)
+            ?obj.transactions
+            :[],
+        pin:obj.pin||""
+    };
+
+    clean.transactions.forEach(x=>{
+
+        if(x.person==="Afan"){
+            x.person="A Cousin";
+        }
+
+        x.amount=Number(x.amount||0);
+
+        if(!x.id){
+            x.id=createId();
+        }
+
+        if(!x.note){
+            x.note="Contribution";
+        }
+
+    });
+
+    return clean;
+}
+
+
+data=normalizeData(data);
+
+localStorage.setItem(
+    "cousinFundV4",
+    JSON.stringify(data)
+);
+
+
+/* ==============================
+   ID
+   ============================== */
+
+function createId(){
+
+    if(window.crypto&&crypto.randomUUID){
+        return crypto.randomUUID();
+    }
+
+    return Date.now()+"-"+Math.random()
+        .toString(36)
+        .substring(2,8);
+}
+
+
+/* ==============================
+   FIREBASE
+   ============================== */
+
+function setSyncStatus(text){
+
+    const el=document.getElementById("syncStatus");
+
+    if(el){
+        el.innerText=text;
+    }
+
+}
+
+
+async function initFirebase(){
+
+    try{
+
+        setSyncStatus("☁️ Connecting...");
+
+        if(!window.firebase){
+
+            await new Promise((resolve,reject)=>{
+
+                const appScript=document.createElement("script");
+
+                appScript.src=
+                    "https://www.gstatic.com/firebasejs/12.19.0/firebase-app-compat.js";
+
+                appScript.onload=resolve;
+                appScript.onerror=reject;
+
+                document.head.appendChild(appScript);
+
+            });
+
+            await new Promise((resolve,reject)=>{
+
+                const firestoreScript=document.createElement("script");
+
+                firestoreScript.src=
+                    "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore-compat.js";
+
+                firestoreScript.onload=resolve;
+                firestoreScript.onerror=reject;
+
+                document.head.appendChild(firestoreScript);
+
+            });
+
+        }
+
+        if(!firebase.apps.length){
+            firebase.initializeApp(firebaseConfig);
+        }
+
+        db=firebase.firestore();
+
+        fundRef=
+            db.collection("cousinFund")
+            .doc("main");
+
+
+        const snapshot=await fundRef.get();
+
+        if(snapshot.exists){
+
+            data=normalizeData(snapshot.data());
+
+            localStorage.setItem(
+                "cousinFundV4",
+                JSON.stringify(data)
+            );
+
+        }else{
+
+            await fundRef.set(data);
+
+        }
+
+
+        cloudReady=true;
+
+        setSyncStatus("☁️ Synced");
+
+        render();
+
+
+        if(!cloudListenerStarted){
+
+            cloudListenerStarted=true;
+
+            fundRef.onSnapshot(
+                snapshot=>{
+
+                    if(!snapshot.exists)return;
+
+                    if(savingToCloud)return;
+
+                    const incoming=
+                        normalizeData(snapshot.data());
+
+                    data=incoming;
+
+                    localStorage.setItem(
+                        "cousinFundV4",
+                        JSON.stringify(data)
+                    );
+
+                    render();
+
+                    setSyncStatus("☁️ Synced");
+
+                    if(data.pin){
+
+                        document
+                        .getElementById("lockScreen")
+                        .classList.remove("hidden");
+
+                    }else{
+
+                        document
+                        .getElementById("lockScreen")
+                        .classList.add("hidden");
+
+                    }
+
+                },
+                error=>{
+
+                    console.error(error);
+
+                    setSyncStatus("⚠️ Sync error");
+
+                }
+            );
+
+        }
+
+    }catch(error){
+
+        console.error(error);
+
+        cloudReady=false;
+
+        setSyncStatus("📱 Local mode");
+
+        notify(
+            "☁️ Firebase connection failed. Local mode active."
+        );
+
+    }
+
+}
+
+
+/* ==============================
+   SAVE
+   ============================== */
+
+async function save(){
+
+    data=normalizeData(data);
+
+    localStorage.setItem(
+        "cousinFundV4",
+        JSON.stringify(data)
+    );
+
+    render();
+
+
+    if(cloudReady&&fundRef){
+
+        try{
+
+            savingToCloud=true;
+
+            setSyncStatus("☁️ Saving...");
+
+            await fundRef.set(data);
+
+            setSyncStatus("☁️ Synced");
+
+        }catch(error){
+
+            console.error(error);
+
+            setSyncStatus("⚠️ Sync failed");
+
+            notify("☁️ Could not sync changes.");
+
+        }finally{
+
+            setTimeout(()=>{
+                savingToCloud=false;
+            },300);
+
+        }
+
+    }
+
+}
+
+
+/* ==============================
+   HELPERS
+   ============================== */
+
+function money(value){
+
+    return Number(value||0).toFixed(2);
+
+}
+
+
+function escapeHtml(value){
+
+    return String(value??"")
+        .replace(/&/g,"&amp;")
+        .replace(/</g,"&lt;")
+        .replace(/>/g,"&gt;")
+        .replace(/"/g,"&quot;")
+        .replace(/'/g,"&#039;");
+
+}
+
+
+function notify(message){
+
+    const t=document.getElementById("toast");
+
+    t.innerText=message;
+
+    t.classList.add("show");
+
+    setTimeout(()=>{
+        t.classList.remove("show");
+    },2300);
+
+}
+
+
+/* ==============================
+   NAVIGATION
+   ============================== */
+
+function showPage(page){
+
+    document
+    .querySelectorAll(".section")
+    .forEach(x=>x.classList.remove("active"));
+
+    document
+    .getElementById(page)
+    .classList.add("active");
+
+    window.scrollTo({
+        top:0,
+        behavior:"smooth"
+    });
+
+}
+
+
+/* ==============================
+   DARK MODE
+   ============================== */
+
+function toggleDark(){
+
+    document.body.classList.toggle("dark");
+
+    localStorage.setItem(
+        "cousinFundDark",
+        document.body.classList.contains("dark")
+    );
+
+}
+
+
+if(localStorage.getItem("cousinFundDark")==="true"){
+    document.body.classList.add("dark");
+}
+
+
+/* ==============================
+   CALCULATIONS
+   ============================== */
+
+function calculate(){
+
+    const aCousin=
+        data.transactions
+        .filter(x=>x.person==="A Cousin")
+        .reduce((s,x)=>s+Number(x.amount),0);
+
+    const cousin=
+        data.transactions
+        .filter(x=>x.person==="Cousin")
+        .reduce((s,x)=>s+Number(x.amount),0);
+
+    const total=aCousin+cousin;
+
+    const roblox=total*.50;
+    const savings=total*.20;
+    const personal=total*.20;
+    const fun=total*.10;
+
+    const aCousinPersonal=aCousin*.20;
+    const cousinPersonal=cousin*.20;
+    const aCousinFun=aCousin*.10;
+    const cousinFun=cousin*.10;
+
+    return{
+        aCousin,
+        cousin,
+        total,
+        roblox,
+        savings,
+        personal,
+        fun,
+        aCousinPersonal,
+        cousinPersonal,
+        aCousinFun,
+        cousinFun
+    };
+
+}
+
+
+/* ==============================
+   GOALS
+   ============================== */
+
+function saveGoal(){
+
+    const name=
+        document
+        .getElementById("goalNameInput")
+        .value.trim();
+
+    const amount=
+        Number(
+            document
+            .getElementById("goalAmountInput")
+            .value
+        );
+
+    if(!name){
+        notify("Enter a goal name.");
+        return;
+    }
+
+    if(amount<300){
+        notify("Goal must be at least ₹300.");
+        return;
+    }
+
+    if(data.transactions.length>0){
+
+        if(!confirm(
+            "Changing a goal should be agreed by both of you IRL. Continue?"
+        )){
+            return;
+        }
+
+    }
+
+    data.goalName=name;
+    data.goal=amount;
+
+    save();
+
+    notify("🎯 Goal saved.");
+
+    showPage("home");
+
+}
+
+
+function removeGoal(){
+
+    if(
+        !data.goal &&
+        (!data.goalName||data.goalName==="No Goal")
+    ){
+
+        notify("There is no active goal.");
+
+        return;
+
+    }
+
+    if(!confirm(
+        "Remove the current goal?\n\nYour contribution history will NOT be deleted."
+    )){
+        return;
+    }
+
+    data.goalName="No Goal";
+    data.goal=0;
+
+    save();
+
+    notify("Goal removed. History kept.");
+
+}
+
+
+/* ==============================
+   ADD CONTRIBUTION
+   ============================== */
+
+function addContribution(){
+
+    const person=
+        document.getElementById("contributor").value;
+
+    const amount=
+        Number(
+            document
+            .getElementById("contributionAmount")
+            .value
+        );
+
+    const note=
+        document
+        .getElementById("contributionNote")
+        .value.trim()||"Contribution";
+
+
+    if(!data.goal){
+
+        notify("Create a goal first.");
+
+        return;
+
+    }
+
+    if(amount<=0){
+
+        notify("Enter a valid amount.");
+
+        return;
+
+    }
+
+
+    const existing=
+        data.transactions
+        .filter(x=>x.person===person)
+        .reduce((s,x)=>s+Number(x.amount),0);
+
+    const maximum=data.goal/2;
+
+
+    if(existing+amount>maximum){
+
+        notify(
+            person+
+            " would exceed their 50% goal share."
+        );
+
+        return;
+
+    }
+
+
+    data.transactions.push({
+
+        id:createId(),
+
+        person,
+
+        amount,
+
+        note,
+
+        date:new Date().toLocaleString()
+
+    });
+
+
+    document.getElementById(
+        "contributionAmount"
+    ).value="";
+
+    document.getElementById(
+        "contributionNote"
+    ).value="";
+
+
+    save();
+
+    notify(
+        "💰 ₹"+money(amount)+
+        " recorded for "+person+"."
+    );
+
+    showPage("home");
+
+}
+
+
+/* ==============================
+   SPLIT PREVIEW
+   ============================== */
+
+document
+.getElementById("contributionAmount")
+.addEventListener("input",function(){
+
+    const amount=Number(this.value);
+
+    const preview=
+        document.getElementById("splitPreview");
+
+    if(!amount){
+
+        preview.innerHTML=
+            "Enter an amount above to see the split.";
+
+        return;
+
+    }
+
+    preview.innerHTML=`
+
+        <p>🎮 Roblox Fund:
+        <b>₹${money(amount*.50)}</b></p>
+
+        <p>👤 Personal Fund:
+        <b>₹${money(amount*.20)}</b></p>
+
+        <p>🏦 Shared Savings:
+        <b>₹${money(amount*.20)}</b></p>
+
+        <p>🍫 Fun Fund:
+        <b>₹${money(amount*.10)}</b></p>
+
+        <hr>
+
+        <p><b>Total: ₹${money(amount)}</b></p>
+
+    `;
+
+});
+
+
+/* ==============================
+   EDIT
+   ============================== */
+
+function editTransaction(id){
+
+    const item=
+        data.transactions.find(
+            x=>String(x.id)===String(id)
+        );
+
+    if(!item)return;
+
+    document.getElementById("editId").value=item.id;
+
+    document.getElementById("editPerson").value=
+        item.person;
+
+    document.getElementById("editAmount").value=
+        item.amount;
+
+    document.getElementById("editNote").value=
+        item.note;
+
+    document
+    .getElementById("editModal")
+    .classList.add("show");
+
+}
+
+
+function saveEdit(){
+
+    const id=
+        document
+        .getElementById("editId")
+        .value;
+
+    const person=
+        document
+        .getElementById("editPerson")
+        .value;
+
+    const amount=
+        Number(
+            document
+            .getElementById("editAmount")
+            .value
+        );
+
+    const note=
+        document
+        .getElementById("editNote")
+        .value.trim()
+        ||"Contribution";
+
+
+    if(amount<=0){
+
+        notify("Invalid amount.");
+
+        return;
+
+    }
+
+
+    const otherTotal=
+        data.transactions
+        .filter(x=>
+            String(x.id)!==String(id)&&
+            x.person===person
+        )
+        .reduce((s,x)=>s+Number(x.amount),0);
+
+
+    if(data.goal&&otherTotal+amount>data.goal/2){
+
+        notify(
+            person+
+            " would exceed their 50% share."
+        );
+
+        return;
+
+    }
+
+
+    const item=
+        data.transactions.find(
+            x=>String(x.id)===String(id)
+        );
+
+    if(!item)return;
+
+
+    item.person=person;
+    item.amount=amount;
+    item.note=note;
+    item.edited=true;
+    item.editedAt=new Date().toLocaleString();
+
+
+    closeModal();
+
+    save();
+
+    notify("✏️ Contribution updated.");
+
+}
+
+
+function deleteTransaction(id){
+
+    if(!confirm(
+        "Delete this contribution permanently?"
+    )){
+        return;
+    }
+
+    data.transactions=
+        data.transactions.filter(
+            x=>String(x.id)!==String(id)
+        );
+
+    save();
+
+    notify("🗑️ Contribution deleted.");
+
+}
+
+
+function closeModal(){
+
+    document
+    .getElementById("editModal")
+    .classList.remove("show");
+
+}
+
+
+/* ==============================
+   HISTORY
+   ============================== */
+
+function renderHistory(){
+
+    const search=
+        document
+        .getElementById("searchTransactions")
+        .value
+        .toLowerCase();
+
+    const filter=
+        document
+        .getElementById("filterTransactions")
+        .value;
+
+
+    const items=
+        data.transactions.filter(x=>{
+
+            const person=
+                String(x.person||"").toLowerCase();
+
+            const note=
+                String(x.note||"").toLowerCase();
+
+            const matchesSearch=
+                person.includes(search)||
+                note.includes(search);
+
+            const matchesFilter=
+                filter==="all"||
+                x.person===filter;
+
+            return matchesSearch&&matchesFilter;
+
+        });
+
+
+    const box=
+        document.getElementById("historyList");
+
+
+    if(items.length===0){
+
+        box.innerHTML=
+            "No matching transactions.";
+
+        return;
+
+    }
+
+
+    box.innerHTML=
+        items
+        .slice()
+        .reverse()
+        .map(x=>`
+
+            <div class="transaction">
+
+                <div class="transactionTop">
+
+                    <div>
+
+                        <b>
+                        ${escapeHtml(x.person)}
+                        </b>
+
+                        <br>
+
+                        <span class="muted">
+                        ${escapeHtml(x.note)}
+                        </span>
+
+                        <br>
+
+                        <span class="small">
+                        ${escapeHtml(x.date)}
+                        </span>
+
+                        ${
+                            x.edited
+                            ?`
+                            <br>
+                            <span class="small orange">
+                            Edited: ${escapeHtml(x.editedAt)}
+                            </span>
+                            `
+                            :""
+                        }
+
+                    </div>
+
+                    <div style="text-align:right">
+
+                        <div class="green">
+                        +₹${money(x.amount)}
+                        </div>
+
+                        <button
+                        class="secondary smallBtn"
+                        onclick="editTransaction('${String(x.id).replace(/'/g,"\\'")}')"
+                        >
+                        ✏️ Edit
+                        </button>
+
+                        <button
+                        class="danger smallBtn"
+                        onclick="deleteTransaction('${String(x.id).replace(/'/g,"\\'")}')"
+                        >
+                        🗑️ Delete
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        `)
+        .join("");
+
+}
+
+
+/* ==============================
+   REPORT
+   ============================== */
+
+function createReport(){
+
+    const c=calculate();
+
+    const goalHalf=data.goal/2;
+
+    const percent=data.goal
+        ?Math.min(100,(c.total/data.goal)*100)
+        :0;
+
+
+    let report="";
+
+    report+="========================================\n";
+    report+="           COUSIN FUND V4\n";
+    report+="        DETAILED MONEY REPORT\n";
+    report+="========================================\n\n";
+
+    report+="REPORT INFORMATION\n";
+    report+="----------------------------------------\n";
+    report+="Report Created: "+new Date().toLocaleString()+"\n";
+    report+="App Version: 4.0\n";
+    report+="Purpose: Shared money tracking\n\n";
+
+    report+="GOAL INFORMATION\n";
+    report+="----------------------------------------\n";
+    report+="Goal Name: "+data.goalName+"\n";
+    report+="Goal Amount: ₹"+money(data.goal)+"\n";
+    report+="Required From A Cousin: ₹"+money(goalHalf)+"\n";
+    report+="Required From Cousin: ₹"+money(goalHalf)+"\n";
+    report+="Total Currently Contributed: ₹"+money(c.total)+"\n";
+    report+="Goal Progress: "+percent.toFixed(1)+"%\n\n";
+
+    report+="A COUSIN ACCOUNT\n";
+    report+="----------------------------------------\n";
+    report+="Total Contributed: ₹"+money(c.aCousin)+"\n";
+    report+="Required Contribution: ₹"+money(goalHalf)+"\n";
+    report+="Remaining To Target: ₹"+money(Math.max(0,goalHalf-c.aCousin))+"\n";
+    report+="Personal Fund: ₹"+money(c.aCousinPersonal)+"\n";
+    report+="Fun Fund: ₹"+money(c.aCousinFun)+"\n";
+    report+="Contribution Count: "+
+        data.transactions.filter(x=>x.person==="A Cousin").length+
+        "\n\n";
+
+    report+="COUSIN ACCOUNT\n";
+    report+="----------------------------------------\n";
+    report+="Total Contributed: ₹"+money(c.cousin)+"\n";
+    report+="Required Contribution: ₹"+money(goalHalf)+"\n";
+    report+="Remaining To Target: ₹"+money(Math.max(0,goalHalf-c.cousin))+"\n";
+    report+="Personal Fund: ₹"+money(c.cousinPersonal)+"\n";
+    report+="Fun Fund: ₹"+money(c.cousinFun)+"\n";
+    report+="Contribution Count: "+
+        data.transactions.filter(x=>x.person==="Cousin").length+
+        "\n\n";
+
+    report+="SHARED FUNDS\n";
+    report+="----------------------------------------\n";
+    report+="Roblox Fund (50%): ₹"+money(c.roblox)+"\n";
+    report+="Shared Savings (20%): ₹"+money(c.savings)+"\n\n";
+
+    report+="TOTAL FUND BREAKDOWN\n";
+    report+="----------------------------------------\n";
+    report+="Total Roblox Allocation: ₹"+money(c.roblox)+"\n";
+    report+="Total Personal Allocation: ₹"+money(c.personal)+"\n";
+    report+="Total Savings Allocation: ₹"+money(c.savings)+"\n";
+    report+="Total Fun Allocation: ₹"+money(c.fun)+"\n";
+    report+="Total Money Tracked: ₹"+money(c.total)+"\n\n";
+
+    report+="ALLOCATION RULE\n";
+    report+="----------------------------------------\n";
+    report+="50% = Roblox Fund\n";
+    report+="20% = Personal Fund\n";
+    report+="20% = Shared Savings\n";
+    report+="10% = Fun Fund\n\n";
+
+    report+="TRANSACTION RECORDS\n";
+    report+="========================================\n\n";
+
+
+    if(data.transactions.length===0){
+
+        report+="No transactions recorded.\n";
+
+    }else{
+
+        data.transactions.forEach((x,index)=>{
+
+            const amount=Number(x.amount);
+
+            report+="TRANSACTION "+(index+1)+"\n";
+            report+="----------------------------------------\n";
+            report+="Contributor: "+x.person+"\n";
+            report+="Amount Contributed: ₹"+money(amount)+"\n";
+            report+="Date: "+x.date+"\n";
+            report+="Note: "+x.note+"\n";
+            report+="Roblox Allocation: ₹"+money(amount*.50)+"\n";
+            report+="Personal Allocation: ₹"+money(amount*.20)+"\n";
+            report+="Savings Allocation: ₹"+money(amount*.20)+"\n";
+            report+="Fun Allocation: ₹"+money(amount*.10)+"\n";
+
+            report+="Edited: "+(x.edited?"Yes":"No")+"\n";
+
+            if(x.edited){
+                report+="Last Edited: "+x.editedAt+"\n";
+            }
+
+            report+="\n";
+
+        });
+
+    }
+
+
+    report+="========================================\n";
+    report+="END OF COUSIN FUND REPORT\n";
+    report+="========================================\n";
+
+    return report;
+
+}
+
+
+function showExport(){
+
+    document.getElementById("report").innerText=
+        createReport();
+
+    document
+    .getElementById("exportModal")
+    .classList.add("show");
+
+}
+
+
+function closeExport(){
+
+    document
+    .getElementById("exportModal")
+    .classList.remove("show");
+
+}
+
+
+function downloadReport(){
+
+    const report=createReport();
+
+    const blob=new Blob(
+        [report],
+        {type:"text/plain"}
+    );
+
+    const url=URL.createObjectURL(blob);
+
+    const a=document.createElement("a");
+
+    a.href=url;
+    a.download="cousin-fund-detailed-report.txt";
+
+    a.click();
+
+    URL.revokeObjectURL(url);
+
+    notify("📄 Detailed report downloaded.");
+
+}
+
+
+/* ==============================
+   JSON BACKUP
+   ============================== */
+
+function downloadJSON(){
+
+    const blob=new Blob(
+        [JSON.stringify(data,null,2)],
+        {type:"application/json"}
+    );
+
+    const url=URL.createObjectURL(blob);
+
+    const a=document.createElement("a");
+
+    a.href=url;
+    a.download="cousin-fund-v4-backup.json";
+
+    a.click();
+
+    URL.revokeObjectURL(url);
+
+    notify("💾 Backup downloaded.");
+
+}
+
+
+function importBackup(event){
+
+    const file=event.target.files[0];
+
+    if(!file)return;
+
+
+    const reader=new FileReader();
+
+    reader.onload=function(e){
+
+        try{
+
+            const imported=
+                JSON.parse(e.target.result);
+
+
+            if(
+                !imported.transactions||
+                typeof imported.goal!=="number"
+            ){
+                throw new Error();
+            }
+
+
+            if(!confirm(
+                "Import this backup and replace current data?"
+            )){
+                return;
+            }
+
+
+            data=normalizeData(imported);
+
+            save();
+
+            notify("📥 Backup imported.");
+
+        }catch{
+
+            notify("❌ Invalid backup file.");
+
+        }
+
+    };
+
+
+    reader.readAsText(file);
+
+}
+
+
+/* ==============================
+   PIN
+   ============================== */
+
+function setPin(){
+
+    const pin=prompt(
+        "Enter a 4-6 digit PIN:"
+    );
+
+    if(!pin)return;
+
+    if(!/^\d{4,6}$/.test(pin)){
+
+        notify("PIN must be 4-6 numbers.");
+
+        return;
+
+    }
+
+    data.pin=pin;
+
+    save();
+
+    notify("🔐 PIN enabled.");
+
+}
+
+
+function removePin(){
+
+    if(!data.pin){
+
+        notify("No PIN is currently set.");
+
+        return;
+
+    }
+
+    if(!confirm("Remove the app PIN?")){
+
+        return;
+
+    }
+
+    data.pin="";
+
+    save();
+
+    notify("🔓 PIN removed.");
+
+}
+
+
+function unlock(){
+
+    const entered=
+        document
+        .getElementById("loginPin")
+        .value;
+
+    if(entered===data.pin){
+
+        document
+        .getElementById("lockScreen")
+        .classList.add("hidden");
+
+        document
+        .getElementById("pinError")
+        .innerText="";
+
+        document
+        .getElementById("loginPin")
+        .value="";
+
+    }else{
+
+        document
+        .getElementById("pinError")
+        .innerText=
+            "Incorrect PIN.";
+
+    }
+
+}
+
+
+/* ==============================
+   RESET EVERYTHING
+   ============================== */
+
+async function resetEverything(){
+
+    if(!confirm(
+        "WARNING: This will delete the goal, all contributions, transactions and settings. Continue?"
+    )){
+        return;
+    }
+
+
+    data={
+        goalName:"No Goal",
+        goal:0,
+        transactions:[],
+        pin:""
+    };
+
+
+    localStorage.removeItem("cousinFundDark");
+
+    localStorage.setItem(
+        "cousinFundV4",
+        JSON.stringify(data)
+    );
+
+
+    if(cloudReady&&fundRef){
+
+        try{
+
+            savingToCloud=true;
+
+            setSyncStatus("☁️ Resetting...");
+
+            await fundRef.set(data);
+
+            setSyncStatus("☁️ Synced");
+
+        }catch(error){
+
+            console.error(error);
+
+            notify("☁️ Cloud reset failed.");
+
+        }finally{
+
+            savingToCloud=false;
+
+        }
+
+    }
+
+
+    location.reload();
+
+}
+
+
+/* ==============================
+   RENDER
+   ============================== */
+
+function render(){
+
+    const c=calculate();
+
+    const half=data.goal/2;
+
+    const percent=data.goal
+        ?Math.min(100,(c.total/data.goal)*100)
+        :0;
+
+
+    document.getElementById("homeGoalName")
+        .innerText=data.goalName;
+
+    document.getElementById("homeTotal")
+        .innerText=money(c.total);
+
+    document.getElementById("homeCurrent")
+        .innerText=money(c.total);
+
+    document.getElementById("homeGoal")
+        .innerText=money(data.goal);
+
+    document.getElementById("progressBar")
+        .style.width=percent+"%";
+
+
+    document.getElementById("aCousinTotal")
+        .innerText=money(c.aCousin);
+
+    document.getElementById("cousinTotal")
+        .innerText=money(c.cousin);
+
+    document.getElementById("aCousinRequired")
+        .innerText=money(half);
+
+    document.getElementById("cousinRequired")
+        .innerText=money(half);
+
+
+    document.getElementById("aCousinStatus")
+        .innerHTML=
+        data.goal&&c.aCousin>=half
+        ?`<span class="green">✓ Target reached</span>`
+        :`<span class="muted">₹${money(Math.max(0,half-c.aCousin))} remaining</span>`;
+
+
+    document.getElementById("cousinStatus")
+        .innerHTML=
+        data.goal&&c.cousin>=half
+        ?`<span class="green">✓ Target reached</span>`
+        :`<span class="muted">₹${money(Math.max(0,half-c.cousin))} remaining</span>`;
+
+
+    document.getElementById("sumRoblox")
+        .innerText=money(c.roblox);
+
+    document.getElementById("sumPersonal")
+        .innerText=money(c.personal);
+
+    document.getElementById("sumSavings")
+        .innerText=money(c.savings);
+
+    document.getElementById("sumFun")
+        .innerText=money(c.fun);
+
+
+    document.getElementById("fundRoblox")
+        .innerText=money(c.roblox);
+
+    document.getElementById("fundSavings")
+        .innerText=money(c.savings);
+
+    document.getElementById("fundACousinPersonal")
+        .innerText=money(c.aCousinPersonal);
+
+    document.getElementById("fundCousinPersonal")
+        .innerText=money(c.cousinPersonal);
+
+    document.getElementById("fundACousinFun")
+        .innerText=money(c.aCousinFun);
+
+    document.getElementById("fundCousinFun")
+        .innerText=money(c.cousinFun);
+
+
+    document.getElementById("statTransactions")
+        .innerText=data.transactions.length;
+
+    document.getElementById("statAverage")
+        .innerText=money(
+            data.transactions.length
+            ?c.total/data.transactions.length
+            :0
+        );
+
+    document.getElementById("statACousinCount")
+        .innerText=
+        data.transactions.filter(
+            x=>x.person==="A Cousin"
+        ).length;
+
+    document.getElementById("statCousinCount")
+        .innerText=
+        data.transactions.filter(
+            x=>x.person==="Cousin"
+        ).length;
+
+
+    const message=
+        document.getElementById("goalMessage");
+
+
+    if(
+        data.goal&&
+        c.aCousin>=half&&
+        c.cousin>=half
+    ){
+
+        message.innerHTML=`
+
+            <div class="complete">
+
+                🎉 GOAL COMPLETED!<br><br>
+
+                A Cousin completed:
+                ₹${money(c.aCousin)}<br>
+
+                Cousin completed:
+                ₹${money(c.cousin)}<br><br>
+
+                🤝 The purchase decision happens together IRL.
+
+            </div>
+
+        `;
+
+    }else if(data.goal){
+
+        message.innerHTML=`
+
+            <div style="margin-top:14px">
+                ⏳ Goal is ${percent.toFixed(1)}% complete.
+            </div>
+
+        `;
+
+    }else{
+
+        message.innerHTML="";
+
+    }
+
+
+    renderHistory();
+
+}
+
+
+/* ==============================
+   STARTUP
+   ============================== */
+
+render();
+
+if(data.pin){
+
+    document
+    .getElementById("lockScreen")
+    .classList.remove("hidden");
+
+}
+
+initFirebase();
+
+</script>
+
+</body>
+      </html>
